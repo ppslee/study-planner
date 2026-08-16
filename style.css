@@ -1,0 +1,588 @@
+/* ── 전체 기본 ── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+  background: #FFFDF5;
+  color: #212121;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+/* ── 헤더 ── */
+.header {
+  background: linear-gradient(135deg, #1A237E, #283593);
+  color: white;
+  padding: 16px 20px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.header h1 {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.header .dday {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #FFD54F;
+}
+
+.header .exam-date {
+  font-size: 0.82rem;
+  color: #B3C5FF;
+  margin-top: 2px;
+}
+
+/* ── 하단 네비게이션 ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: white;
+  border-top: 1px solid #E0E0E0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 0;
+  z-index: 100;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+}
+
+.nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  color: #9E9E9E;
+  font-size: 0.72rem;
+  border: none;
+  background: none;
+  padding: 4px 12px;
+  border-radius: 8px;
+  transition: color 0.2s;
+  font-family: inherit;
+}
+
+.nav-btn.active { color: #1A237E; font-weight: bold; }
+.nav-btn .icon { font-size: 1.4rem; }
+
+/* ── 컨테이너 ── */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 14px 16px;
+}
+
+/* ── 카드 ── */
+.card {
+  background: white;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+
+.card-title {
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #1A237E;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── 오늘 요약 ── */
+.today-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.summary-item {
+  background: white;
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+}
+
+.summary-item .val {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1A237E;
+}
+
+.summary-item .lbl {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 2px;
+}
+
+/* ── 입력 폼 ── */
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-group label {
+  font-size: 0.82rem;
+  font-weight: bold;
+  color: #555;
+}
+
+.form-group select,
+.form-group input,
+.form-group textarea {
+  padding: 10px 12px;
+  border: 1.5px solid #E0E0E0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  background: #FAFAFA;
+  transition: border-color 0.2s;
+}
+
+.form-group select:focus,
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #1A237E;
+  background: white;
+}
+
+.form-group textarea { resize: vertical; min-height: 60px; }
+
+/* ── 공부 방법 체크박스 ── */
+.method-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.method-chip {
+  padding: 6px 14px;
+  border: 1.5px solid #E0E0E0;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: white;
+  font-family: inherit;
+}
+
+.method-chip.selected {
+  background: #1A237E;
+  color: white;
+  border-color: #1A237E;
+}
+
+/* ── 저장 버튼 ── */
+.btn-save {
+  width: 100%;
+  padding: 14px;
+  background: #1A237E;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  font-family: inherit;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.2s;
+}
+
+.btn-save:hover { background: #283593; }
+
+/* ── 과목별 현황 바 ── */
+.subject-list { display: flex; flex-direction: column; gap: 10px; }
+
+.subject-item {}
+
+.subject-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.subject-name {
+  font-size: 0.88rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.subject-stats {
+  font-size: 0.78rem;
+  color: #888;
+}
+
+.subject-stats .shortage {
+  color: #E53935;
+  font-weight: bold;
+}
+
+.subject-stats .done {
+  color: #2E7D32;
+  font-weight: bold;
+}
+
+.progress-wrap {
+  background: #F0F0F0;
+  border-radius: 6px;
+  height: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.4s ease;
+}
+
+.progress-pct {
+  font-size: 0.72rem;
+  color: #888;
+  margin-top: 2px;
+  text-align: right;
+}
+
+/* ── 히트맵 ── */
+.heatmap-wrap {
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(53, 14px);
+  grid-template-rows: repeat(7, 14px);
+  gap: 2px;
+  min-width: 780px;
+}
+
+.heatmap-cell {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  background: #EEEEEE;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.heatmap-cell:hover { transform: scale(1.3); }
+.heatmap-cell.h1 { background: #C8E6C9; }
+.heatmap-cell.h2 { background: #81C784; }
+.heatmap-cell.h3 { background: #4CAF50; }
+.heatmap-cell.h4 { background: #2E7D32; }
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: flex-end;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.legend-cell {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+/* ── 레이더 차트 ── */
+.radar-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 0;
+}
+
+/* ── 기간 탭 ── */
+.period-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.period-tab {
+  padding: 8px 18px;
+  border: 1.5px solid #1A237E;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  cursor: pointer;
+  white-space: nowrap;
+  background: white;
+  color: #1A237E;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.period-tab.active {
+  background: #1A237E;
+  color: white;
+}
+
+/* ── 분석 테이블 ── */
+.analysis-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.analysis-table th {
+  background: #1A237E;
+  color: white;
+  padding: 10px 8px;
+  text-align: center;
+}
+
+.analysis-table td {
+  padding: 9px 8px;
+  text-align: center;
+  border-bottom: 1px solid #F0F0F0;
+}
+
+.analysis-table tr:nth-child(even) td { background: #F8F8FF; }
+
+.badge-done { color: #2E7D32; font-weight: bold; }
+.badge-short { color: #E53935; font-weight: bold; }
+.badge-over { color: #1565C0; font-weight: bold; }
+
+/* ── 설정 폼 ── */
+.settings-form { display: flex; flex-direction: column; gap: 12px; }
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #F0F0F0;
+}
+
+.setting-row label {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.setting-row input {
+  width: 80px;
+  padding: 8px;
+  border: 1.5px solid #E0E0E0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  text-align: center;
+  font-family: inherit;
+}
+
+.setting-row input:focus {
+  outline: none;
+  border-color: #1A237E;
+}
+
+.pct-total {
+  text-align: right;
+  font-size: 0.85rem;
+  font-weight: bold;
+  padding: 8px 0;
+}
+
+.pct-total.ok { color: #2E7D32; }
+.pct-total.ng { color: #E53935; }
+
+/* ── 데이터 버튼 ── */
+.data-btns {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-export {
+  flex: 1;
+  padding: 12px;
+  background: #2E7D32;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.btn-import {
+  flex: 1;
+  padding: 12px;
+  background: #1565C0;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.btn-danger {
+  width: 100%;
+  padding: 12px;
+  background: #E53935;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  font-family: inherit;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+/* ── 기록 목록 ── */
+.record-list { display: flex; flex-direction: column; gap: 8px; }
+
+.record-item {
+  background: #F8F8FF;
+  border-radius: 10px;
+  padding: 12px;
+  border-left: 4px solid #1A237E;
+}
+
+.record-item .record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.record-item .record-subject {
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #1A237E;
+}
+
+.record-item .record-time {
+  font-size: 0.85rem;
+  color: #555;
+  font-weight: bold;
+}
+
+.record-item .record-detail {
+  font-size: 0.8rem;
+  color: #777;
+}
+
+.record-item .btn-delete {
+  background: none;
+  border: none;
+  color: #E53935;
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 2px 6px;
+  margin-top: 4px;
+}
+
+/* ── 토스트 메시지 ── */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 10px 24px;
+  border-radius: 20px;
+  font-size: 0.88rem;
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.toast.show { opacity: 1; }
+
+/* ── 막대 차트 ── */
+.bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bar-label {
+  width: 90px;
+  font-size: 0.8rem;
+  color: #555;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.bar-bg {
+  flex: 1;
+  background: #F0F0F0;
+  border-radius: 6px;
+  height: 20px;
+  overflow: visible;
+  position: relative;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.5s ease;
+  position: relative;
+}
+
+.bar-target-line {
+  position: absolute;
+  top: -4px;
+  height: 28px;
+  width: 2px;
+  background: #E53935;
+  border-radius: 2px;
+}
+
+.bar-val {
+  width: 50px;
+  font-size: 0.78rem;
+  color: #555;
+  flex-shrink: 0;
+}
+
+/* ── 반응형 ── */
+@media (max-width: 480px) {
+  .header h1 { font-size: 1rem; }
+  .header .dday { font-size: 1.3rem; }
+  .today-summary { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .summary-item .val { font-size: 1.2rem; }
+  .analysis-table { font-size: 0.78rem; }
+  .analysis-table th, .analysis-table td { padding: 7px 4px; }
+}
