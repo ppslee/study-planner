@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>설정 | 세무사 플래너</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- 헤더 -->
+<div class="header">
+  <h1>⚙️ 설정</h1>
+  <div class="dday" id="ddayText">D-???</div>
+  <div class="exam-date">1차 시험: 2027년 4월 24일 (토)</div>
+</div>
+
+<div class="container">
+
+  <!-- 하루 목표 시간 -->
+  <div class="card">
+    <div class="card-title">⏱️ 하루 목표 공부시간</div>
+    <div class="setting-row">
+      <label>하루 목표시간</label>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <input type="number" id="dailyGoal"
+               min="1" max="24" step="0.5"
+               style="width:70px;">
+        <span style="color:#555; font-size:0.9rem;">시간</span>
+      </div>
+    </div>
+    <div style="font-size:0.78rem; color:#888; margin-top:6px;">
+      💡 주간 목표 = 하루 목표 × 7일<br>
+      💡 월간 목표 = 하루 목표 × 해당 월 일수
+    </div>
+  </div>
+
+  <!-- 과목별 비중 -->
+  <div class="card">
+    <div class="card-title">📚 과목별 비중 설정 (%)</div>
+    <div style="font-size:0.78rem; color:#888; margin-bottom:10px;">
+      💡 전체 합계가 100%가 되도록 설정하세요<br>
+      💡 비중이 높을수록 해당 과목 목표시간이 많아집니다
+    </div>
+
+    <div class="settings-form" id="weightForm"></div>
+
+    <div class="pct-total" id="pctTotal">합계: 0%</div>
+
+    <button class="btn-save" onclick="saveAllSettings()"
+            style="margin-top:8px;">
+      💾 설정 저장
+    </button>
+  </div>
+
+  <!-- 과목별 목표시간 미리보기 -->
+  <div class="card">
+    <div class="card-title">👀 목표시간 미리보기 (주간)</div>
+    <div id="previewList" style="display:flex; flex-direction:column; gap:8px;"></div>
+    <div style="font-size:0.75rem; color:#888; margin-top:8px;">
+      * 주간 목표 = 하루 목표 × 7 × 과목 비중%
+    </div>
+  </div>
+
+  <!-- 데이터 관리 -->
+  <div class="card">
+    <div class="card-title">💾 데이터 관리</div>
+
+    <div style="font-size:0.82rem; color:#555; margin-bottom:12px; line-height:1.6;">
+      📥 <b>내보내기</b>: 현재 모든 기록을 JSON 파일로 저장<br>
+      📤 <b>불러오기</b>: 저장된 JSON 파일로 데이터 복원<br>
+      💡 <b>권장</b>: 주 1회 내보내기 후 GitHub에 업로드
+    </div>
+
+    <div class="data-btns">
+      <button class="btn-export" onclick="exportData()">
+        📥 데이터 내보내기
+      </button>
+      <button class="btn-import" onclick="triggerImport()">
+        📤 데이터 불러오기
+      </button>
+    </div>
+
+    <input type="file" id="importFile" accept=".json"
+           style="display:none;"
+           onchange="importData(this.files[0])">
+
+    <!-- 통계 요약 -->
+    <div style="margin-top:16px; padding:12px; background:#F8F8FF;
+                border-radius:10px;">
+      <div style="font-weight:bold; font-size:0.88rem;
+                  color:#1A237E; margin-bottom:8px;">
+        📊 저장된 데이터 현황
+      </div>
+      <div id="dataSummary"
+           style="font-size:0.82rem; color:#555; line-height:1.8;">
+      </div>
+    </div>
+  </div>
+
+  <!-- 전체 기록 조회 -->
+  <div class="card">
+    <div class="card-title">
+      📋 전체 기록 조회
+      <span id="recordCount"
+            style="font-size:0.78rem; font-weight:normal;
+                   color:#888; margin-left:auto;"></span>
+    </div>
+
+    <!-- 필터 -->
+    <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+      <select id="filterSubject"
+              style="flex:1; padding:8px; border:1.5px solid #E0E0E0;
+                     border-radius:8px; font-family:inherit; font-size:0.85rem;"
+              onchange="renderAllRecords()">
+        <option value="">전체 과목</option>
+        <option>법인세법</option>
+        <option>소득세법</option>
+        <option>부가가치세법</option>
+        <option>국기법</option>
+        <option>국징법</option>
+        <option>국제조세법</option>
+        <option>재무회계</option>
+        <option>원가회계</option>
+        <option>재정학</option>
+        <option>행정소송법</option>
+      </select>
+      <input type="month" id="filterMonth"
+             style="flex:1; padding:8px; border:1.5px solid #E0E0E0;
+                    border-radius:8px; font-family:inherit; font-size:0.85rem;"
+             onchange="renderAllRecords()">
+    </div>
+
+    <div class="record-list" id="allRecords"></div>
+  </div>
+
+  <!-- 위험 구역 -->
+  <div class="card" style="border:2px solid #FFCDD2;">
+    <div class="card-title" style="color:#E53935;">
+      ⚠️ 데이터 초기화
+    </div>
+    <div style="font-size:0.82rem; color:#888; margin-bottom:12px;">
+      모든 공부 기록이 삭제됩니다. 삭제 전 반드시 내보내기를 하세요!
+    </div>
+    <button class="btn-danger" onclick="resetAllData()">
+      🗑️ 전체 데이터 초기화
+    </button>
+  </div>
+
+</div>
+
+<!-- 하단 네비게이션 -->
+<div class="bottom-nav">
+  <button class="nav-btn" onclick="location.href='index.html'">
+    <span class="icon">🏠</span>홈
+  </button>
+  <button class="nav-btn" onclick="location.href='analysis.html'">
+    <span class="icon">📊</span>분석
+  </button>
+  <button class="nav-btn active" onclick="location.href='settings.html'">
+    <span class="icon">⚙️</span>설정
+  </button>
+</div>
+
+<script src="app.js"></script>
+<script>
+
+// ── 초기화 ──
+function init() {
+  document.getElementById('ddayText').textContent = getDDayText();
+  loadSettings();
+  renderAllRecords();
+  renderDataSummary();
+}
+
+// ── 설정 불러오기 ──
+function loadSettings() {
+  const s = getSettings();
+  document.getElementById('dailyGoal').value = s.dailyGoal;
+
+  const form = document.getElementById('weightForm');
+  form.innerHTML = '';
+
+  SUBJECTS.forEach((sub, i) => {
+    const w = s.weights[sub] || 10;
+    const color = SUBJECT_COLORS[i];
+    const row = document.createElement('div');
+    row.className = 'setting-row';
+    row.innerHTML = `
+      <label style="color:${color}; font-weight:bold;">
+        ${sub}
+      </label>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <input type="number"
+               id="weight_${sub.replace(/[^a-zA-Z0-9가-힣]/g,'_')}"
+               min="0" max="100" value="${w}"
+               oninput="updatePctTotal(); updatePreview();"
+               style="width:60px; text-align:center;">
+        <span style="color:#555; font-size:0.9rem;">%</span>
+      </div>
+    `;
+    form.appendChild(row);
+  });
+
+  updatePctTotal();
+  updatePreview();
+}
+
+// ── 합계 업데이트 ──
+function updatePctTotal() {
+  const total = getWeightTotal();
+  const el = document.getElementById('pctTotal');
+  el.textContent = `합계: ${total}%`;
+  el.className = `pct-total ${total === 100 ? 'ok' : 'ng'}`;
+}
+
+function getWeightTotal() {
+  return SUBJECTS.reduce((sum, sub) => {
+    const id = `weight_${sub.replace(/[^a-zA-Z0-9가-힣]/g,'_')}`;
+    const el = document.getElementById(id);
+    return sum + (el ? Number(el.value) || 0 : 0);
+  }, 0);
+}
+
+// ── 미리보기 ──
+function updatePreview() {
+  const daily = Number(document.getElementById('dailyGoal').value) || 8;
+  const weekGoal = daily * 7;
+  const list = document.getElementById('previewList');
+  list.innerHTML = '';
+
+  SUBJECTS.forEach((sub, i) => {
+    const id = `weight_${sub.replace(/[^a-zA-Z0-9가-힣]/g,'_')}`;
+    const el = document.getElementById(id);
+    const w = el ? Number(el.value) || 0 : 0;
+    const goal = (weekGoal * w / 100).toFixed(1);
+    const color = SUBJECT_COLORS[i];
+
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #F0F0F0;';
+    row.innerHTML = `
+      <span style="font-size:0.85rem; font-weight:bold; color:${color};">
+        ${sub}
+      </span>
+      <span style="font-size:0.85rem; color:#555;">
+        ${w}% → <b>${goal}h</b>/주
+      </span>
+    `;
+    list.appendChild(row);
+  });
+}
+
+// ── 설정 저장 ──
+function saveAllSettings() {
+  const total = getWeightTotal();
+  if (total !== 100) {
+    showToast(`⚠️ 비중 합계가 ${total}%입니다. 100%로 맞춰주세요!`);
+    return;
+  }
+
+  const daily = Number(document.getElementById('dailyGoal').value);
+  if (!daily || daily < 1) {
+    showToast('⚠️ 하루 목표시간을 입력해주세요!');
+    return;
+  }
+
+  const weights = {};
+  SUBJECTS.forEach(sub => {
+    const id = `weight_${sub.replace(/[^a-zA-Z0-9가-힣]/g,'_')}`;
+    const el = document.getElementById(id);
+    weights[sub] = el ? Number(el.value) : 10;
+  });
+
+  saveSettings({ dailyGoal: daily, weights });
+  showToast('✅ 설정이 저장되었습니다!');
+  updatePreview();
+}
+
+// ── 전체 기록 렌더링 ──
+function renderAllRecords() {
+  const filterSub   = document.getElementById('filterSubject').value;
+  const filterMonth = document.getElementById('filterMonth').value;
+
+  let records = getRecords();
+
+  if (filterSub) {
+    records = records.filter(r => r.subject === filterSub);
+  }
+  if (filterMonth) {
+    records = records.filter(r => r.date.startsWith(filterMonth));
+  }
+
+  records = records.slice().reverse();
+
+  document.getElementById('recordCount').textContent =
+    `총 ${records.length}건`;
+
+  const container = document.getElementById('allRecords');
+
+  if (!records.length) {
+    container.innerHTML =
+      '<div style="text-align:center; color:#aaa; padding:16px;">기록이 없습니다</div>';
+    return;
+  }
+
+  container.innerHTML = '';
+  records.forEach(r => {
+    const subIdx = SUBJECTS.indexOf(r.subject);
+    const color  = subIdx >= 0 ? SUBJECT_COLORS[subIdx] : '#1A237E';
+    const item   = document.createElement('div');
+    item.className = 'record-item';
+    item.style.borderLeftColor = color;
+    item.innerHTML = `
+      <div class="record-header">
+        <span class="record-subject" style="color:${color};">
+          ${r.subject}
+        </span>
+        <span class="record-time">${r.hours}시간</span>
+      </div>
+      <div class="record-detail">
+        📅 ${r.date}
+        ${r.methods ? `&nbsp;|&nbsp; 🎯 ${r.methods}` : ''}
+        ${r.range   ? `&nbsp;|&nbsp; 📖 ${r.range}` : ''}
+        ${r.memo    ? `<br>💬 ${r.memo}` : ''}
+      </div>
+      <button class="btn-delete"
+              onclick="deleteAndRefresh(${r.id})">
+        🗑️ 삭제
+      </button>
+    `;
+    container.appendChild(item);
+  });
+}
+
+function deleteAndRefresh(id) {
+  if (!confirm('이 기록을 삭제하시겠어요?')) return;
+  deleteRecord(id);
+  showToast('🗑️ 삭제되었습니다');
+  renderAllRecords();
+  renderDataSummary();
+}
+
+// ── 데이터 현황 ──
+function renderDataSummary() {
+  const records = getRecords();
+  const total   = records.reduce((s, r) => s + Number(r.hours), 0);
+  const days    = [...new Set(records.map(r => r.date))].length;
+
+  const subCounts = {};
+  SUBJECTS.forEach(s => {
+    subCounts[s] = records
+      .filter(r => r.subject === s)
+      .reduce((sum, r) => sum + Number(r.hours), 0);
+  });
+
+  const topSub = Object.entries(subCounts)
+    .sort((a, b) => b[1] - a[1])[0];
+
+  document.getElementById('dataSummary').innerHTML = `
+    📝 총 기록 수: <b>${records.length}건</b><br>
+    📅 공부한 날: <b>${days}일</b><br>
+    ⏱️ 총 공부시간: <b>${total.toFixed(1)}시간</b><br>
+    📚 가장 많이 공부한 과목:
+      <b>${topSub ? `${topSub[0]} (${topSub[1].toFixed(1)}h)` : '-'}</b>
+  `;
+}
+
+// ── import 트리거 ──
+function triggerImport() {
+  document.getElementById('importFile').click();
+}
+
+// ── 전체 초기화 ──
+function resetAllData() {
+  if (!confirm('⚠️ 정말로 모든 데이터를 삭제하시겠어요?\n삭제 전 데이터를 내보내기 하세요!'))
+    return;
+  if (!confirm('⚠️ 마지막 확인! 이 작업은 되돌릴 수 없습니다.'))
+    return;
+
+  localStorage.removeItem('planner_records');
+  showToast('🗑️ 모든 데이터가 삭제되었습니다');
+  setTimeout(() => location.reload(), 1000);
+}
+
+// 시작
+init();
+</script>
+
+</body>
+</html>
