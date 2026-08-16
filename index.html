@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>세무사 시험 플래너</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- 헤더 -->
+<div class="header">
+  <h1>⚖️ 세무사 시험 플래너</h1>
+  <div class="dday" id="ddayText">D-???</div>
+  <div class="exam-date">1차 시험: 2027년 4월 24일 (토)</div>
+</div>
+
+<div class="container">
+
+  <!-- 오늘 요약 -->
+  <div class="today-summary">
+    <div class="summary-item">
+      <div class="val" id="todayHours">0</div>
+      <div class="lbl">오늘 공부(h)</div>
+    </div>
+    <div class="summary-item">
+      <div class="val" id="weekHours">0</div>
+      <div class="lbl">이번주(h)</div>
+    </div>
+    <div class="summary-item">
+      <div class="val" id="monthHours">0</div>
+      <div class="lbl">이번달(h)</div>
+    </div>
+  </div>
+
+  <!-- 공부 입력 -->
+  <div class="card">
+    <div class="card-title">📝 오늘 공부 입력</div>
+    <div class="form-row">
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div class="form-group">
+          <label>📅 날짜</label>
+          <input type="date" id="inputDate">
+        </div>
+        <div class="form-group">
+          <label>⏱️ 공부시간 (h)</label>
+          <input type="number" id="inputHours" min="0.5" max="24" step="0.5" placeholder="예) 2.5">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>📚 과목</label>
+        <select id="inputSubject">
+          <option value="">-- 과목 선택 --</option>
+          <option>법인세법</option>
+          <option>소득세법</option>
+          <option>부가가치세법</option>
+          <option>국기법</option>
+          <option>국징법</option>
+          <option>국제조세법</option>
+          <option>재무회계</option>
+          <option>원가회계</option>
+          <option>재정학</option>
+          <option>행정소송법</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>🎯 공부 방법</label>
+        <div class="method-wrap" id="methodWrap">
+          <button class="method-chip" onclick="toggleMethod(this)">강의</button>
+          <button class="method-chip" onclick="toggleMethod(this)">교재</button>
+          <button class="method-chip" onclick="toggleMethod(this)">문제풀이</button>
+          <button class="method-chip" onclick="toggleMethod(this)">복습</button>
+          <button class="method-chip" onclick="toggleMethod(this)">모의고사</button>
+          <button class="method-chip" onclick="toggleMethod(this)">오답정리</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>📖 공부 범위</label>
+        <input type="text" id="inputRange" placeholder="예) 1장~3장, 취득세 전범위">
+      </div>
+
+      <div class="form-group">
+        <label>💬 메모</label>
+        <textarea id="inputMemo" placeholder="어려웠던 부분, 복습 필요한 내용 등"></textarea>
+      </div>
+
+      <button class="btn-save" onclick="saveStudyRecord()">💾 저장하기</button>
+    </div>
+  </div>
+
+  <!-- 오늘 과목별 현황 -->
+  <div class="card">
+    <div class="card-title">
+      📊 오늘 과목별 현황
+      <span id="todayPeriodLabel"
+            style="font-size:0.78rem; font-weight:normal; color:#888; margin-left:auto;">
+      </span>
+    </div>
+    <div class="subject-list" id="todaySubjectBars"></div>
+  </div>
+
+  <!-- 오늘 기록 목록 -->
+  <div class="card">
+    <div class="card-title">📋 오늘 기록</div>
+    <div class="record-list" id="todayRecords"></div>
+  </div>
+
+  <!-- 히트맵 -->
+  <div class="card">
+    <div class="card-title">🟩 공부 히트맵 (최근 1년)</div>
+    <div class="heatmap-wrap">
+      <div id="heatmapContainer"></div>
+    </div>
+  </div>
+
+  <!-- 레이더 차트 -->
+  <div class="card">
+    <div class="card-title">
+      🕸️ 과목 균형도 (이번주)
+    </div>
+    <div class="radar-wrap">
+      <div id="radarCanvas" style="width:100%; max-width:320px;"></div>
+    </div>
+    <div style="font-size:0.75rem; color:#888; text-align:center; margin-top:4px;">
+      초록 = 달성 &nbsp;|&nbsp; 점선 = 목표 100%
+    </div>
+  </div>
+
+</div>
+
+<!-- 하단 네비게이션 -->
+<div class="bottom-nav">
+  <button class="nav-btn active" onclick="location.href='index.html'">
+    <span class="icon">🏠</span>홈
+  </button>
+  <button class="nav-btn" onclick="location.href='analysis.html'">
+    <span class="icon">📊</span>분석
+  </button>
+  <button class="nav-btn" onclick="location.href='settings.html'">
+    <span class="icon">⚙️</span>설정
+  </button>
+</div>
+
+<script src="app.js"></script>
+<script>
+
+// ── 초기화 ──
+function init() {
+  // D-Day
+  document.getElementById('ddayText').textContent = getDDayText();
+
+  // 날짜 기본값
+  document.getElementById('inputDate').value = getTodayStr();
+
+  // 요약
+  refreshSummary();
+
+  // 오늘 과목별 현황
+  refreshTodayBars();
+
+  // 오늘 기록
+  renderTodayRecords('todayRecords');
+
+  // 히트맵
+  buildHeatmap('heatmapContainer');
+
+  // 레이더
+  refreshRadar();
+}
+
+// ── 요약 갱신 ──
+function refreshSummary() {
+  const records = getRecords();
+  const today = getTodayStr();
+  const week = getWeekRange();
+  const month = getMonthRange();
+
+  const todayH = records
+    .filter(r => r.date === today)
+    .reduce((s, r) => s + Number(r.hours), 0);
+  const weekH = records
+    .filter(r => isInRange(r.date, week.start, week.end))
+    .reduce((s, r) => s + Number(r.hours), 0);
+  const monthH = records
+    .filter(r => isInRange(r.date, month.start, month.end))
+    .reduce((s, r) => s + Number(r.hours), 0);
+
+  document.getElementById('todayHours').textContent = todayH.toFixed(1);
+  document.getElementById('weekHours').textContent  = weekH.toFixed(1);
+  document.getElementById('monthHours').textContent = monthH.toFixed(1);
+}
+
+// ── 오늘 과목별 현황 ──
+function refreshTodayBars() {
+  const today = getTodayStr();
+  const records = getRecords();
+  const stats = calcStats(records, today, today);
+
+  document.getElementById('todayPeriodLabel').textContent = today;
+  renderSubjectBars('todaySubjectBars', stats);
+}
+
+// ── 레이더 갱신 ──
+function refreshRadar() {
+  const week = getWeekRange();
+  const records = getRecords();
+  const stats = calcStats(records, week.start, week.end);
+  setTimeout(() => buildRadar('radarCanvas', stats, 'week'), 100);
+}
+
+// ── 공부 방법 토글 ──
+function toggleMethod(btn) {
+  btn.classList.toggle('selected');
+}
+
+function getSelectedMethods() {
+  return Array.from(document.querySelectorAll('.method-chip.selected'))
+    .map(b => b.textContent).join(', ');
+}
+
+// ── 저장 ──
+function saveStudyRecord() {
+  const date    = document.getElementById('inputDate').value;
+  const subject = document.getElementById('inputSubject').value;
+  const hours   = document.getElementById('inputHours').value;
+  const range   = document.getElementById('inputRange').value;
+  const memo    = document.getElementById('inputMemo').value;
+  const methods = getSelectedMethods();
+
+  if (!date || !subject || !hours) {
+    showToast('⚠️ 날짜, 과목, 시간은 필수입니다!');
+    return;
+  }
+
+  addRecord({ date, subject, hours: Number(hours), methods, range, memo });
+  showToast(`✅ ${subject} ${hours}h 저장 완료!`);
+
+  // 초기화
+  document.getElementById('inputHours').value  = '';
+  document.getElementById('inputSubject').value = '';
+  document.getElementById('inputRange').value  = '';
+  document.getElementById('inputMemo').value   = '';
+  document.querySelectorAll('.method-chip.selected')
+    .forEach(b => b.classList.remove('selected'));
+
+  refreshPage();
+}
+
+// ── 전체 갱신 ──
+function refreshPage() {
+  refreshSummary();
+  refreshTodayBars();
+  renderTodayRecords('todayRecords');
+  buildHeatmap('heatmapContainer');
+  refreshRadar();
+}
+
+// 시작
+init();
+</script>
+
+</body>
+</html>
