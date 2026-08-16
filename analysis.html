@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>분석 | 세무사 플래너</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- 헤더 -->
+<div class="header">
+  <h1>📊 기간별 분석</h1>
+  <div class="dday" id="ddayText">D-???</div>
+  <div class="exam-date">1차 시험: 2027년 4월 24일 (토)</div>
+</div>
+
+<div class="container">
+
+  <!-- 기간 탭 -->
+  <div class="period-tabs">
+    <button class="period-tab active" onclick="changePeriod('week',   this)">주간</button>
+    <button class="period-tab"        onclick="changePeriod('month',  this)">월간</button>
+    <button class="period-tab"        onclick="changePeriod('quarter',this)">분기</button>
+    <button class="period-tab"        onclick="changePeriod('half',   this)">반기</button>
+    <button class="period-tab"        onclick="changePeriod('year',   this)">연간</button>
+  </div>
+
+  <!-- 기간 라벨 -->
+  <div style="text-align:center; font-size:0.85rem; color:#888;
+              margin-bottom:12px;" id="periodLabel"></div>
+
+  <!-- 전체 요약 -->
+  <div class="today-summary" style="margin-bottom:14px;">
+    <div class="summary-item">
+      <div class="val" id="totalDone">0</div>
+      <div class="lbl">총 공부시간(h)</div>
+    </div>
+    <div class="summary-item">
+      <div class="val" id="totalGoal">0</div>
+      <div class="lbl">목표시간(h)</div>
+    </div>
+    <div class="summary-item">
+      <div class="val" id="totalPct">0%</div>
+      <div class="lbl">전체 달성률</div>
+    </div>
+  </div>
+
+  <!-- 과목별 현황 바 -->
+  <div class="card">
+    <div class="card-title">📊 과목별 달성 현황</div>
+    <div class="subject-list" id="subjectBars"></div>
+  </div>
+
+  <!-- 막대 차트 -->
+  <div class="card">
+    <div class="card-title">📈 과목별 공부시간 비교</div>
+    <div class="bar-chart" id="barChart"></div>
+    <div style="font-size:0.75rem; color:#888; margin-top:6px;">
+      빨간 세로선 = 목표시간
+    </div>
+  </div>
+
+  <!-- 레이더 차트 -->
+  <div class="card">
+    <div class="card-title">🕸️ 과목 균형도</div>
+    <div class="radar-wrap">
+      <div id="radarCanvas" style="width:100%; max-width:340px;"></div>
+    </div>
+    <div style="font-size:0.75rem; color:#888; text-align:center; margin-top:4px;">
+      초록 = 달성 &nbsp;|&nbsp; 점선 = 목표 100%
+    </div>
+  </div>
+
+  <!-- 상세 테이블 -->
+  <div class="card">
+    <div class="card-title">📋 과목별 상세 분석</div>
+    <div style="overflow-x:auto;">
+      <div id="analysisTable"></div>
+    </div>
+  </div>
+
+  <!-- 부족 과목 알림 -->
+  <div class="card" id="shortageCard">
+    <div class="card-title">⚠️ 집중 필요 과목</div>
+    <div id="shortageList"></div>
+  </div>
+
+  <!-- 히트맵 -->
+  <div class="card">
+    <div class="card-title">🟩 공부 히트맵 (최근 1년)</div>
+    <div class="heatmap-wrap">
+      <div id="heatmapContainer"></div>
+    </div>
+  </div>
+
+  <!-- 공부 방법 분석 -->
+  <div class="card">
+    <div class="card-title">🎯 공부 방법 분석</div>
+    <div id="methodAnalysis"></div>
+  </div>
+
+</div>
+
+<!-- 하단 네비게이션 -->
+<div class="bottom-nav">
+  <button class="nav-btn" onclick="location.href='index.html'">
+    <span class="icon">🏠</span>홈
+  </button>
+  <button class="nav-btn active" onclick="location.href='analysis.html'">
+    <span class="icon">📊</span>분석
+  </button>
+  <button class="nav-btn" onclick="location.href='settings.html'">
+    <span class="icon">⚙️</span>설정
+  </button>
+</div>
+
+<script src="app.js"></script>
+<script>
+
+let currentPeriod = 'week';
+
+// ── 초기화 ──
+function init() {
+  document.getElementById('ddayText').textContent = getDDayText();
+  buildHeatmap('heatmapContainer');
+  renderAll('week');
+}
+
+// ── 기간 변경 ──
+function changePeriod(period, btn) {
+  currentPeriod = period;
+  document.querySelectorAll('.period-tab')
+    .forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAll(period);
+}
+
+// ── 전체 렌더링 ──
+function renderAll(period) {
+  const range = getPeriodRange(period);
+  const records = getRecords();
+  const stats = calcStats(records, range.start, range.end);
+
+  // 기간 라벨
+  const periodNames = {
+    week:'주간', month:'월간', quarter:'분기', half:'반기', year:'연간'
+  };
+  document.getElementById('periodLabel').textContent =
+    `📅 ${periodNames[period]} | ${range.start} ~ ${range.end}`;
+
+  // 전체 요약
+  const totalPct = stats.totalGoal > 0
+    ? Math.round(stats.totalHours / stats.totalGoal * 100)
+    : 0;
+  document.getElementById('totalDone').textContent =
+    stats.totalHours.toFixed(1);
+  document.getElementById('totalGoal').textContent =
+    stats.totalGoal.toFixed(1);
+  document.getElementById('totalPct').textContent = `${totalPct}%`;
+  document.getElementById('totalPct').style.color =
+    totalPct >= 100 ? '#2E7D32' : totalPct >= 70 ? '#F57F17' : '#E53935';
+
+  // 과목별 현황 바
+  renderSubjectBars('subjectBars', stats);
+
+  // 막대 차트
+  renderBarChart('barChart', stats);
+
+  // 레이더
+  setTimeout(() => buildRadar('radarCanvas', stats, period), 100);
+
+  // 테이블
+  renderAnalysisTable('analysisTable', stats, periodNames[period]);
+
+  // 부족 과목
+  renderShortage(stats);
+
+  // 공부 방법 분석
+  renderMethodAnalysis(stats.filtered);
+}
+
+// ── 부족 과목 렌더링 ──
+function renderShortage(stats) {
+  const list = document.getElementById('shortageList');
+  const shorts = SUBJECTS
+    .filter(s => stats.subjectStats[s].shortage > 0)
+    .sort((a, b) =>
+      stats.subjectStats[b].shortage - stats.subjectStats[a].shortage
+    );
+
+  if (!shorts.length) {
+    list.innerHTML = `
+      <div style="text-align:center; color:#2E7D32;
+                  font-weight:bold; padding:12px;">
+        🎉 모든 과목 목표 달성!
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = '';
+  shorts.forEach((sub, i) => {
+    const s = stats.subjectStats[sub];
+    const color = i === 0 ? '#E53935' : i === 1 ? '#F57F17' : '#FDD835';
+    const item = document.createElement('div');
+    item.style.cssText = `
+      display:flex; justify-content:space-between;
+      align-items:center; padding:10px 0;
+      border-bottom:1px solid #F0F0F0;
+    `;
+    item.innerHTML = `
+      <div>
+        <span style="font-weight:bold; color:${color};">
+          ${i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'} ${sub}
+        </span>
+        <span style="font-size:0.78rem; color:#888; margin-left:6px;">
+          달성 ${s.pct}%
+        </span>
+      </div>
+      <div style="color:#E53935; font-weight:bold; font-size:0.9rem;">
+        ${s.shortage.toFixed(1)}h 부족
+      </div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+// ── 공부 방법 분석 ──
+function renderMethodAnalysis(filtered) {
+  const container = document.getElementById('methodAnalysis');
+
+  // 방법별 시간 집계
+  const methodMap = {};
+  filtered.forEach(r => {
+    if (!r.methods) return;
+    r.methods.split(', ').forEach(m => {
+      if (!m) return;
+      methodMap[m] = (methodMap[m] || 0) + Number(r.hours);
+    });
+  });
+
+  if (!Object.keys(methodMap).length) {
+    container.innerHTML =
+      '<div style="text-align:center; color:#aaa; padding:12px;">데이터가 없습니다</div>';
+    return;
+  }
+
+  const total = Object.values(methodMap).reduce((a, b) => a + b, 0);
+  const sorted = Object.entries(methodMap)
+    .sort((a, b) => b[1] - a[1]);
+
+  const colors = ['#1A237E','#1E88E5','#43A047','#F4511E','#8E24AA','#00897B'];
+
+  let html = '<div style="display:flex; flex-direction:column; gap:8px;">';
+  sorted.forEach(([method, hours], i) => {
+    const pct = Math.round(hours / total * 100);
+    html += `
+      <div>
+        <div style="display:flex; justify-content:space-between;
+                    font-size:0.85rem; margin-bottom:3px;">
+          <span style="font-weight:bold;">${method}</span>
+          <span style="color:#888;">${hours.toFixed(1)}h (${pct}%)</span>
+        </div>
+        <div style="background:#F0F0F0; border-radius:6px;
+                    height:10px; overflow:hidden;">
+          <div style="width:${pct}%; background:${colors[i % colors.length]};
+                      height:100%; border-radius:6px;
+                      transition:width 0.4s;"></div>
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+// 시작
+init();
+</script>
+
+</body>
+</html>
